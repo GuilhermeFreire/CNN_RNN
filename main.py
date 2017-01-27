@@ -5,11 +5,11 @@ from keras.models import Sequential
 from keras.layers import Convolution2D, LSTM, Dense, RepeatVector
 from keras.constraints import maxnorm
 from keras.layers import Flatten
-import helpScripts as hs
+import helper as hs
 
 NB_IMAGES = 500
 
-helper = hs.helper()
+helper = hs.Helper()
 X_image = helper.images[:NB_IMAGES-1]
 Y_char = helper.encoded_Labels[:NB_IMAGES-1]
 X_test = helper.images[NB_IMAGES-1:]
