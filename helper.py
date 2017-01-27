@@ -78,8 +78,7 @@ class Helper:
 		self.char_to_index = {v:k for k,v in enumerate(self.index_to_char)}
 
 		#Guarda o tamanho do espaço de caracteres
-		#Somamos 1 por causa do "caracter" especial EOS (End Of Sentence)
-		self.num_char = len(self.index_to_char) + 1
+		self.num_char = len(self.index_to_char)
 
 if __name__ == "__main__":
 	h = Helper()
