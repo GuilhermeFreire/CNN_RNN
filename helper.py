@@ -113,7 +113,7 @@ class Helper:
     def one_hot_vector(self, vector):
         return np.array(list(map(self.one_hot_char, vector)))
 
-    def reverse_one_hot(self, predictions):
+    def reverse_one_hot(self, description):
         sentences = []
         for sentence in predictions:
             sent = ""    
@@ -123,6 +123,9 @@ class Helper:
         sentences.append(sent)
         return sentences
   
+    def convert_vec_index_to_string(self, description):
+        return "".join(map(self.convert_index_to_char, description))
+
     #def one_hot(self, labels):
     #   return map(self.one_hot_vector, labels)
 

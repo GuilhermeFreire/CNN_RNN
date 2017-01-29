@@ -8,16 +8,16 @@ from keras.layers import Flatten
 from keras.preprocessing.text import one_hot
 import helper as hs
 
-num_examples = 5
+num_examples = 1
 
 helper = hs.Helper()
 helper.load_dataset()
 
 #Data for train and test:
 X_image, Y_labels = helper.load_n_random_examples(num_examples)
-X_test_generator = helper.load_single_image(helper.img_paths[1])
+X_test_image = helper.load_single_image(helper.img_paths[1])
 
-curr_description = np.zeros((num_examples, helper.max_description_length))
+curr_description = np.array([-1]*num_examples*helper.max_description_length).reshape(num_examples, helper.max_description_length)
 
 
 #----------------------------#
@@ -68,25 +68,33 @@ for i in range(helper.max_description_length):
     curr_description = np.roll(curr_description, -1, axis=1)
     curr_description[:, -1] = next_char
 
-    model.fit([np.array(X_image), curr_description] , onehot_next_char, batch_size=32, nb_epoch=10, verbose=1)
+    model.fit([np.array(X_image), curr_description] , onehot_next_char, batch_size=32, nb_epoch=1000, verbose=1)
 
 #Save model:
+#-----------------------------------------#
+# serialize model to JSON
+model_json = model.to_json()
+with open("model.json", "w") as json_file:
+    json_file.write(model_json)
+# serialize weights to HDF5
+model.save_weights("model.h5")
+print("Saved model to disk")
+#------------------------------------------#
 
 #Predict:
-
+description = np.array([-1]*helper.max_description_length)
 for i in range(helper.max_description_length):   
-    
+    curr_char = model.predict([np.array([X_test_image]), np.array([description])])
+    curr_char = np.argmax(curr_char[0])
+    description = np.roll(description, -1)    
+    description[-1] = curr_char
 
-    model.fit([np.array(X_image), curr_description] , onehot_next_char, batch_size=32, nb_epoch=10, verbose=1)
-
-
-predictions = model.predict(np.array([X_test_generator]))
-sentences = helper.reverse_one_hot(predictions)
+description = helper.convert_vec_index_to_string(description)
 
 print("")
 print("")
 print("SENTENCES:")    
-print(sentences)
+print(description)
 print("--")
 
 gc.collect()
