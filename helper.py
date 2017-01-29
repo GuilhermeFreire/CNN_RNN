@@ -35,7 +35,7 @@ class Helper:
         #Carrega uma descrição formatada com os índices dos caracteres
         text = self.descriptions[index]
         description = np.lib.pad(np.asarray(list(map(self.convert_char_to_index, text))), (0, self.max_description_length - len(text)), "constant", constant_values=self.char_to_index[self.EOS])
-        return self.one_hot_vector(description)
+        return description
 
     def load_single_image(self, path):
         #Carrega uma imagem em um numpy array
@@ -112,7 +112,7 @@ class Helper:
 
     def one_hot_vector(self, vector):
         return np.array(list(map(self.one_hot_char, vector)))
-      
+
     def reverse_one_hot(self, predictions):
         sentences = []
         for sentence in predictions:
