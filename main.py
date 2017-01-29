@@ -5,65 +5,50 @@ from keras.models import Sequential
 from keras.layers import Convolution2D, LSTM, Dense, RepeatVector
 from keras.constraints import maxnorm
 from keras.layers import Flatten
+from keras.preprocessing.text import one_hot
 import helper as hs
 
-NB_IMAGES = 500
+database_size = 1024
+n_steps_learning = 200
 
 helper = hs.Helper()
-X_image = helper.images[:NB_IMAGES-1]
-Y_char = helper.encoded_Labels[:NB_IMAGES-1]
-X_test = helper.images[NB_IMAGES-1:]
-print(len(helper.encoded_Labels[0]))
-print(helper.maxLengthSentence)
-#Y_char to onehot
-one_hot_Y_char = []
-for sentence in Y_char:
-    newSentence = []
-    for char in sentence:
-        curr_hot = np.zeros(helper.nb_characters)
-        curr_hot[char] = 1
-        newSentence.append(curr_hot)
-    one_hot_Y_char.append(newSentence)
-one_hot_Y_char = np.array(one_hot_Y_char)
-print(one_hot_Y_char.shape)
-#one_hot_Y_char = one_hot_Y_char[:,:4,:]
+helper.load_dataset()
 
+#Data for train and test:
+X_image_labels = helper.gen_epoch(batch_size = database_size, num_epochs = n_steps_learning)
+X_test_generator = helper.load_single_image(helper.img_paths[1])
 
-#X_image = np.array([[[[0,2,1,0],[0,1,2,0]]]])
-#Y_char = np.array([[[1],[1],[1],[1]]])
-
-
-#X_test = np.array([[[1,0],[1,0],[1,0],[1,0]]])
-
+#Model:
 model = Sequential()
 
-model.add(Convolution2D(20, 3, 3, input_shape=X_image.shape[1:], border_mode='same', activation='relu', W_constraint=maxnorm(3)))
+model.add(Convolution2D(20, 5, 5, input_shape=(142, 170, 3), border_mode='same', activation='relu', W_constraint=maxnorm(3)))
 #model.add(Convolution2D(32, 3, 3, activation='relu', border_mode='same', W_constraint=maxnorm(3)))
 #model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
 model.add(Dense(384, activation='tanh'))
-model.add(RepeatVector(helper.maxLengthSentence))
+model.add(RepeatVector(helper.max_description_length))
 
-model.add(LSTM(192, input_shape=(helper.maxLengthSentence, 384), return_sequences=True))
-model.add(LSTM(helper.nb_characters, return_sequences=True, activation="softmax"))
+model.add(LSTM(192, input_shape=(helper.max_description_length, 384), return_sequences=True))
+model.add(LSTM(helper.num_char, return_sequences=True, activation="softmax"))
 
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 #Train
-model.fit(X_image, one_hot_Y_char)
+print("Training...")
 
-#Predict
-predictions = model.predict(X_test)
-print(predictions)
-sentences = []
-for sentence in predictions:
-    sent = ""    
-    for vec_char in sentence:
-        nb = vec_char.argmax()
-        sent += helper.listCharacter[nb]
-    sentences.append(sent)
-
-print(sentences)
+i = 0  
+for x,y in X_image_labels:
+    print(i)
+    i += 1    
+    model.fit(np.array(x), np.array(y), batch_size=32, nb_epoch=10)
+    
+    predictions = model.predict(np.array([X_test_generator]))
+    sentences = helper.reverse_one_hot(predictions)
+    print("")
+    print("")
+    print("SENTENCES:")    
+    print(sentences)
+    print("--")
 
 gc.collect()
 
