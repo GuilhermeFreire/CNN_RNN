@@ -111,24 +111,24 @@ if __name__ == "__main__":
 	# for X, Y in h.load_n_random_examples(5):
 	# 	print("X:", np.asarray(X).shape, " Y:", np.asarray(Y).shape)
 	# 	print(Y, end="\n\n")
-	X, Y = h.load_n_random_examples(5)
-	# print(X)
-	# print(Y)
-	flag = 0
-	for i in X:
-		# if flag == 0:
-		# 	flag = 1
-		# 	for j in i:
-		# 		print(j)
-		print(X)
+	# X, Y = h.load_n_random_examples(5)
+	# # print(X)
+	# # print(Y)
+	# flag = 0
+	# for i in X:
+	# 	# if flag == 0:
+	# 	# 	flag = 1
+	# 	# 	for j in i:
+	# 	# 		print(j)
+	# 	print(X)
 
-	for i in Y:
-		print(i)
+	# for i in Y:
+	# 	print(i)
 
-	ran = np.random.random_integers(0,h.num_examples, 3)
-	test = h.load_n_images(ran)
-	for t in test:
-		print(t)
-	print(ran)
+	# ran = np.random.random_integers(0,h.num_examples, 3)
+	# test = h.load_n_images(ran)
+	# for t in test:
+	# 	print(t)
+	# print(ran)
 
 	print("Total characters in dataset:", np.sum(list(map(lambda s: len(s), h.descriptions))))
