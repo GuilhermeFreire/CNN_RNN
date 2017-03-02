@@ -6,3 +6,5 @@ An image captioning neural network.
 python3 imgCaptioning_words.py
 python3 imgCaptioning.py
 ```
+# Visualizer
+Open `display.html` on any modern browser.
