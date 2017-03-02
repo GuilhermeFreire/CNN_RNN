@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <input type="file" id="fileForUpload"  style="position: relative">
+    <br>
+    <br>
+    <div style="display: block">
+        <label id="minScale0" style="position: relative; display: inline-block;"></label>
+        <canvas id="canvasScale0" width="150" height="10" style="position: relative; display: inline-block;"></canvas>
+        <label id="maxScale0" style="position: relative; display: inline-block;"></label>
+    </div>
+    <br>
+    <canvas id="canvas0" width="1360" height="552" style="position: relative; display: block;"></canvas>
+    <br>
+    <br>
+    <div style="display: block">
+        <label id="minScale1" style="position: relative; display: inline-block;"></label>
+        <canvas id="canvasScale1" width="150" height="10" style="position: relative; display: inline-block;"></canvas>
+        <label id="maxScale1" style="position: relative; display: inline-block;"></label>
+    </div>
+    <br>
+    <canvas id="canvas1" width="1360" height="552" style="position: relative; display: block;"></canvas>
+    <br>
+    <br>
+    <div style="display: block">
+        <label id="minScale2" style="position: relative; display: inline-block;"></label>
+        <canvas id="canvasScale2" width="150" height="10" style="position: relative; display: inline-block;"></canvas>
+        <label id="maxScale2" style="position: relative; display: inline-block;"></label>
+    </div>
+    <br>
+    <canvas id="canvas2" width="1360" height="552" style="position: relative; display: block;"></canvas>
+</body>
+</html>
+
+<script>
+    var fileContent = null
+
+    document.querySelector('#fileForUpload').onchange = function ()
+    {
+        var file = document.getElementById("fileForUpload").files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.readAsText(file, "UTF-8");
+            reader.onload = function (evt) {
+                fileContent = JSON.parse(evt.target.result);
+
+                drawScale(drawImage(fileContent.states));
+            }
+            reader.onerror = function (evt) {
+                document.getElementById("fileContents").innerHTML = "error reading file";
+            }
+        }
+    }
+
+    function drawScale(cells) {
+        var scale = [
+            {
+                min: document.querySelector('#minScale0'),
+                max: document.querySelector('#maxScale0'),
+
+                canvas: document.querySelector('#canvasScale0')
+            },
+            {
+                min: document.querySelector('#minScale1'),
+                max: document.querySelector('#maxScale1'),
+
+                canvas: document.querySelector('#canvasScale1')
+            },
+            {
+                min: document.querySelector('#minScale2'),
+                max: document.querySelector('#maxScale2'),
+
+                canvas: document.querySelector('#canvasScale2')
+            }
+        ];
+
+        var ctxes = [
+            scale[0].canvas.getContext('2d'),
+            scale[1].canvas.getContext('2d'),
+            scale[2].canvas.getContext('2d'),
+        ];
+
+
+        var width = scale[0].canvas.width;
+        var height = scale[0].canvas.height;
+        var i = 0;
+        var ctxIndex = 0;
+
+        for(ctxIndex = 0; ctxIndex < ctxes.length; ctxIndex++){
+            for(i = 0; i < width; i++){
+                var color = colorInterpolation(0, width, i, cells[ctxIndex].colorRange);
+                ctxes[ctxIndex].fillStyle = "rgb("+color.r+","+color.g+","+color.b+")";
+                ctxes[ctxIndex].fillRect(i,0,1,height);
+                scale[ctxIndex].min.innerHTML = cells[ctxIndex].min;
+                scale[ctxIndex].max.innerHTML = cells[ctxIndex].max;
+            }
+        }
+    }
+
+    function clamp(min, max, value) {
+        return Math.min(max, Math.max(min, value))
+    }
+
+    function colorInterpolation(min, max, value, colorRange){
+        var delta = max - min;
+        var global_pctMax = (value - min) / delta;
+        var global_pctMin = 1 - global_pctMax;
+
+        if(global_pctMax >= 0.5){
+            var pctMax = (global_pctMax - 0.5) / 0.5
+            var pctMin = 1 - pctMax
+        }
+        else{
+            var pctMax = global_pctMax /0.5
+            var pctMin = 1 - pctMax
+        }
+
+        var color = global_pctMax >= 0.5 ? {
+            r: clamp(0, 255, Math.round(Math.pow(Math.pow(pctMin*colorRange[2].r, 2.2) + Math.pow(pctMax*colorRange[0].r, 2.2), 1/2.2))),
+            g: clamp(0, 255, Math.round(Math.pow(Math.pow(pctMin*colorRange[2].g, 2.2) + Math.pow(pctMax*colorRange[0].g, 2.2), 1/2.2))),
+            b: clamp(0, 255, Math.round(Math.pow(Math.pow(pctMin*colorRange[2].b, 2.2) + Math.pow(pctMax*colorRange[0].b, 2.2), 1/2.2)))
+        }:{
+            r: clamp(0, 255, Math.round(Math.pow(Math.pow(pctMin*colorRange[1].r, 2.2) + Math.pow(pctMax*colorRange[2].r, 2.2), 1/2.2))),
+            g: clamp(0, 255, Math.round(Math.pow(Math.pow(pctMin*colorRange[1].g, 2.2) + Math.pow(pctMax*colorRange[2].g, 2.2), 1/2.2))),
+            b: clamp(0, 255, Math.round(Math.pow(Math.pow(pctMin*colorRange[1].b, 2.2) + Math.pow(pctMax*colorRange[2].b, 2.2), 1/2.2)))
+        };
+
+        return color;
+    }
+
+    function drawImage(file) {
+        console.log(file);
+
+        var canvases = [
+            document.querySelector('#canvas0'),
+            document.querySelector('#canvas1'),
+            document.querySelector('#canvas2')
+        ];
+
+        var text = fileContent.description;
+        text = (text.replace(/<SOS>/g, "⇒")).replace(/<EOS>/g, "⇐");
+
+        var cells = [
+            {
+                x: 0,
+                y: 40,
+                width: canvases[0].width,
+                height: canvases[0].height - 40,
+
+                min: 0,
+                max: 0,
+                media: null,
+                dPadrao: null,
+
+                colorRange: [{
+                        r: 0,
+                        g: 60,
+                        b: 48
+                    },{
+                        r: 238,
+                        g: 241,
+                        b: 234
+                    },{
+                        r: 84,
+                        g: 48,
+                        b: 5
+                    }
+                ],
+
+                padding: 2
+            },
+            {
+                x: 0,
+                y: 40,
+                width: canvases[0].width,
+                height: canvases[0].height - 40,
+
+                min: 0,
+                max: 0,
+                media: null,
+                dPadrao: null,
+
+                colorRange: [{
+                        r: 0,
+                        g: 60,
+                        b: 48
+                    },{
+                        r: 238,
+                        g: 241,
+                        b: 234
+                    },{
+                        r: 84,
+                        g: 48,
+                        b: 5
+                    }
+                ],
+
+                padding: 2
+            },
+            {
+                x: 0,
+                y: 40,
+                width: canvases[0].width,
+                height: canvases[0].height - 40,
+
+                min: 0,
+                max: 0,
+                media: null,
+                dPadrao: null,
+
+                colorRange: [{
+                        r: 0,
+                        g: 60,
+                        b: 48
+                    },{
+                        r: 238,
+                        g: 241,
+                        b: 234
+                    },{
+                        r: 84,
+                        g: 48,
+                        b: 5
+                    }
+                ],
+
+                padding: 2
+            }
+        ]
+
+        var neuronBoundries = {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0
+        }
+
+        var ctxes = [
+            canvases[0].getContext('2d'),
+            canvases[1].getContext('2d'),
+            canvases[2].getContext('2d')
+        ];
+
+        var timeStep = 0;
+        var layer = 0;
+        var neuron = 0;
+
+        cells[0].media =    file[0][0][0];
+        cells[0].dPadrao =  file[0][0][0];
+        cells[1].media =    file[0][1][0];
+        cells[1].dPadrao =  file[0][1][0];
+        cells[2].media =    file[0][2][0];
+        cells[2].dPadrao =  file[0][2][0];
+
+        console.log(cells);
+
+        for(timeStep = 0; timeStep < file.length; timeStep++){
+            for(layer = 0; layer < file[0].length; layer++){
+                for(neuron = 0; neuron < file[0][0].length; neuron++){
+                        cells[layer].media += file[timeStep][layer][neuron]
+                }
+            }
+        }
+        cells[0].media = Math.round(cells[0].media/(timeStep*neuron));
+        cells[1].media = Math.round(cells[1].media/(timeStep*neuron));
+        cells[2].media = Math.round(cells[2].media/(timeStep*neuron));
+
+        for(timeStep = 0; timeStep < file.length; timeStep++){
+            for(layer = 0; layer < file[0].length; layer++){
+                for(neuron = 0; neuron < file[0][0].length; neuron++){
+                    cells[layer].dPadrao += Math.pow(file[timeStep][layer][neuron] - cells[layer].media, 2)
+                }
+            }
+        }
+
+        cells[0].dPadrao = Math.round(Math.sqrt(cells[0].dPadrao/(timeStep*neuron)));
+        cells[1].dPadrao = Math.round(Math.sqrt(cells[1].dPadrao/(timeStep*neuron)));
+        cells[2].dPadrao = Math.round(Math.sqrt(cells[2].dPadrao/(timeStep*neuron)));
+
+        cells[0].min = cells[0].media-cells[0].dPadrao;
+        cells[0].max = cells[0].media+cells[0].dPadrao;
+        cells[1].min = cells[1].media-cells[1].dPadrao;
+        cells[1].max = cells[1].media+cells[1].dPadrao;
+        cells[2].min = cells[2].media-cells[2].dPadrao;
+        cells[2].max = cells[2].media+cells[2].dPadrao;
+
+
+        console.log("min: "+cells[0].min+"\n", "max: "+cells[0].max+"\n", "dPadrao: "+cells[0].dPadrao+"\n", "media: "+cells[0].media);
+        console.log("min: "+cells[1].min+"\n", "max: "+cells[1].max+"\n", "dPadrao: "+cells[1].dPadrao+"\n", "media: "+cells[1].media);
+        console.log("min: "+cells[2].min+"\n", "max: "+cells[2].max+"\n", "dPadrao: "+cells[2].dPadrao+"\n", "media: "+cells[2].media);
+
+        for(timeStep = 0; timeStep < file.length; timeStep++){
+            for(layer = 0; layer < file[0].length; layer++){
+                for(neuron = 0; neuron < file[0][0].length; neuron++){
+                    neuronBoundries.x = timeStep+cells[layer].x;
+                    neuronBoundries.y = neuron+cells[layer].y;
+
+                    neuronBoundries.width = (cells[layer].width/file.length);
+                    neuronBoundries.height = cells[layer].height/file[0][layer].length;
+
+                    neuronBoundries.x *= neuronBoundries.width;
+                    neuronBoundries.y *= neuronBoundries.height;
+
+                    neuronBoundries.width -= cells[layer].padding;
+
+                    var color = colorInterpolation(cells[layer].min, cells[layer].max, file[timeStep][layer][neuron], cells[layer].colorRange);
+                    ctxes[layer].fillStyle = "rgb("+color.r+","+color.g+","+color.b+")";
+                    ctxes[layer].fillRect(neuronBoundries.x, neuronBoundries.y, neuronBoundries.width, neuronBoundries.height);
+
+
+                }
+
+                var character = text[timeStep];
+                neuronBoundries.x = (timeStep*(cells[layer].width/file.length)) + (cells[layer].width/file.length)*0.25 - cells[layer].padding;
+                neuronBoundries.y = cells[layer].y - ((cells[layer].width/file.length)/2);
+                ctxes[layer].font = (cells[layer].width/file.length)+"px Courier New";
+                ctxes[layer].fillStyle = "rgb(0,0,0)";
+                ctxes[layer].fillText(character, neuronBoundries.x, neuronBoundries.y);
+            }
+        }
+
+        console.log("Done");
+
+        return cells;
+    }
+
+</script>
