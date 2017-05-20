@@ -1,0 +1,12 @@
+[
+  ["test1.png", "frase original1", "frase gerada pela rede", "frase de controle"],
+  ["test2.png", "frase original2", "Man on top of a plane with duck in lamp", "frase de controle"],
+  ["test3.png", "frase original3", "Detective steals a girl with a ripped bear", "frase de controle"],
+  ["test4.png", "frase original4", "The Earth is ready for the world", "frase de controle"],
+  ["test5.png", "frase original5", "Corn on Rick, Robber vs. Batman.", "frase de controle"],
+  ["test6.png", "frase original6", "Winter is coming.", "frase de controle"],
+  ["test7.png", "frase original7", "Plan at WTF", "frase de controle"],
+  ["test8.png", "frase original8", "Darth Vader is hot new year", "frase de controle"],
+  ["test9.png", "frase original9", "Cthulhu plays with bulbasaur battle", "frase de controle"],
+  ["test10.png", "frase original10", "Illuminati cell create Rick", "frase de controle"]
+]
