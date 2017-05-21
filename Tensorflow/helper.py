@@ -51,7 +51,7 @@ class Helper():
 
 	def load_dataset_words(self, meta_data_path="metadata.txt"):
 		#Lê os metadados do arquivo
-		with open(meta_data_path) as md:
+		with open(meta_data_path, encoding="utf8") as md:
 			data = md.readlines()
 			#Aplica a função separate_data em todas as linhas do arquivo
 			#e separa em duas listas.
@@ -123,7 +123,12 @@ class Helper():
 		imgs = []
 		for path in img_paths:
 			imgs.append(misc.imread(path))
-
+        
+		for i, img in enumerate(imgs):
+			if img.shape != (142, 170, 3):
+				print("ERROR: broken image line: %i" % (i+1))
+				exit()
+        
 		return (np.array(imgs), descriptions)
 
 
