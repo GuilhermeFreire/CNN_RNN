@@ -53,6 +53,18 @@
             document.querySelector("#message").classList.remove("hidden");
             return
         }
+        while(frases[current][0] == "" || frases[current][1] == "" || frases[current][2] == "" || frases[current][3] == ""){
+            if(current >= frases.length){
+                document.querySelector(".send").style.display = "none";
+                //TODO: Notificar fim das imagens
+
+                document.querySelector("#container").style.display = "none";
+                document.querySelector("#message").classList.remove("hidden");
+                return
+            }
+            current++;
+            console.log("jump");
+        }
 
         document.querySelector("#input_image").src = "./imgs/"+(frases[current][0]);
 
